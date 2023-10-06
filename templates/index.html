@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Search</title>
+    <!-- Include Tailwind CSS from CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 20px;
+        }
+
+        .chat-box {
+            border: 1px solid #ccc;
+            padding: 10px;
+            max-width: 500px;
+            margin: 20px auto;
+            border-radius: 8px;
+            background-color: #f8f8f8;
+        }
+
+        .user-message {
+            text-align: right;
+            color: #007bff;
+        }
+
+        .bot-message {
+            text-align: left;
+            color: #28a745;
+            cursor: pointer; /* Add cursor pointer to indicate it's clickable */
+        }
+
+        .speech-indicator {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        input, button {
+            margin-top: 10px;
+            padding: 5px;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <!-- Navigation Bar -->
+    <nav class="bg-blue-500 p-4">
+        <div class="container mx-auto">
+            <a href="/" class="text-white">Zorg</a>
+            <a href="/about" class="text-white ml-4">vedica 1.0.0</a>
+            <!-- Add more navigation links as needed -->
+        </div>
+    </nav>
+
+
+    <div class="chat-box bg-white shadow-md p-4 rounded-md">
+        <div class="user-message text-right text-blue-500">
+            <p>User: Enter search term</p>
+        </div>
+
+        <div class="bot-message text-left text-green-500 mt-2" id="botMessage">
+            <p onclick="speak()">Bot: Speak to initiate speech recognition</p>
+            <div id="speechIndicator" class="speech-indicator"></div>
+        </div>
+    </div>
+        {% if mysearch %}
+    <div class="chat-box bg-white shadow-md p-4 rounded-md mt-4">
+        <div class="user-message text-right text-blue-500">
+            <p>You: {{ request.form['search_term'] }}</p>
+        </div>
+
+        <div class="bot-message text-left text-green-500 mt-2">
+            <p onclick="speak('{{ mysearch }}')">Bot: {{ mysearch }}</p>
+        </div>
+    </div>
+{% endif %}
+
+    <form id="searchForm" method="post" action="/" class="mt-4">
+        <label for="searchInput" class="block text-sm font-medium text-gray-700">You:</label>
+        <input type="text" id="searchInput" name="search_term" class="mt-1 p-2 border rounded-md w-full">
+        <button type="button" id="speechButton" class="mt-2 px-4 py-2 bg-blue-500 text-white rounded-md">Speak</button>
+        <button type="submit" class="hidden">Submit</button>
+    </form>
+
+
+
+    <script>
+        const searchInput = document.getElementById('searchInput');
+        const speechButton = document.getElementById('speechButton');
+        const searchForm = document.getElementById('searchForm');
+        const botMessage = document.getElementById('botMessage');
+        const speechIndicator = document.getElementById('speechIndicator');
+
+        // Add event listener for the Speak button
+        speechButton.addEventListener('click', startSpeechRecognition);
+
+        function startSpeechRecognition() {
+            const recognition = new window.webkitSpeechRecognition();
+            recognition.lang = 'en-US';
+
+            // Update UI for speech recognition start
+            botMessage.innerHTML = '<p>Bot: Recognizing speech...</p>';
+            speechIndicator.textContent = 'Speech recognition is active';
+
+            // Start speech recognition
+            recognition.start();
+
+            recognition.onresult = function (event) {
+                const speechResult = event.results[0][0].transcript;
+                
+             searchInput.value = speechResult;
+                
+
+                // Automatically submit the form after setting the speech result
+                searchForm.submit();
+            };
+
+            // Event listener for the end of speech recognition
+            recognition.onend = function () {
+                // Update UI for speech recognition end
+                botMessage.innerHTML = '<p >Bot: Speak to initiate speech recognition</p>';
+                speechIndicator.textContent = '';
+            };
+        }
+
+        // Function to read out loud the bot message
+        function speak(text) {
+    const botMessageText = text;
+
+    // Check if the browser supports the SpeechSynthesis API
+    if ('speechSynthesis' in window) {
+        const synthesis = window.speechSynthesis;
+        const utterance = new SpeechSynthesisUtterance(botMessageText);
+
+        // Optional: Set additional parameters for the speech synthesis
+        // utterance.volume = 1;  // Volume level (0.0 to 1.0)
+        // utterance.rate = 1;    // Speed of speech (0.1 to 10.0)
+        // utterance.pitch = 1;   // Pitch of speech (0.1 to 2.0)
+
+        synthesis.speak(utterance);
+    } else {
+        alert("Your browser doesn't support Text-to-Speech.");
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const mysearch = "{{ mysearch }}"; // Get the value from Jinja template
+    speak(mysearch);
+});
+
+        document.addEventListener('DOMContentLoaded', function() {
+        const mysearch = "{{ mysearch }} "; // Get the value from Jinja template
+        speak(mysearch);
+    });
+
+    </script>
+
+</body>
+</html>
+
