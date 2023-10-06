@@ -21,5 +21,4 @@ def google_search(find):
     mysearch = soup.find("div", class_="BNeawe").text
     return mysearch
 
-if __name__ == '__main__':
-    app.run(debug=True)
+
